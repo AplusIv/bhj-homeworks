@@ -10,8 +10,8 @@ body {
   justify-content: space-around;
   background: gray;
   box-sizing: border-box;
+  margin-bottom: 250px;
   padding: 10px 20px;
-  margin: 0;
 }
 
 .menu__link {

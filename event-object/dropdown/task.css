@@ -7,6 +7,10 @@
   font-weight: 300;
 }
 
+.dropdown_2 {
+  margin-top: 250px;
+}
+
 .dropdown__value {
   color: #fff;
   background: gray;
