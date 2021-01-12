@@ -1,18 +1,3 @@
-/*
-Цикл for .. of для массивов работает схожим образом с forEach, но имеет свои плюсы: как и в любом другом цикле можно использовать continue и break для контроля итераций, что при использовании forEach невозможно. Таким образом, основное преимущество цикла for .. of над методом массивов forEach заключается в широких возможностях его оптимизации.
-
-arr.forEach(item => {
-  // нельзя прервать — выполнится для всех элементов массива в независимости от условий
-	console.log(item); // 'a' 'b' 'c' 'd' 'e' 'f'
-});
-
-for (let value of arr) {
-  if (value === 'c') { continue; }
-  if (value === 'e') { break; }
-  console.log(value); // 'a' 'b' 'd'
-}
- */
-
 'use strict';
 
 const tabs = [...document.querySelectorAll('.tab')];
@@ -20,7 +5,27 @@ const tabContents = [...document.querySelectorAll('.tab__content')];
 console.log(tabs);
 console.log(tabContents);
 
+for (let tab of tabs) {
+  tab.addEventListener('click', chooseTabs);
+}
+
+function chooseTabs() {
+  console.log(tabs.indexOf(this));
+  console.log(tabs.findIndex(item => item.classList.contains('tab_active')));
+  
+  let index = tabs.indexOf(this);  
+  let currentIndex = tabs.findIndex(item => item.classList.contains('tab_active'));
+
+  tabs[currentIndex].classList.remove('tab_active');
+  tabContents[currentIndex].classList.remove('tab__content_active');
+
+  this.classList.add('tab_active');
+  tabContents[index].classList.add('tab__content_active');  
+}
+
+/*
 // ??? Какой-то костыль получился... Как-то проще можно сделать? Или такое решение имеет место быть?
+
 for (let i = 0; i < tabs.length; i++) {
   tabs[i].addEventListener('click', () => {
     if (tabs[i].className.includes('tab_active')) {
@@ -38,3 +43,4 @@ for (let i = 0; i < tabs.length; i++) {
     }
   })
 }
+*/
