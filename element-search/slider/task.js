@@ -57,4 +57,4 @@ function swipeSlides(event) {
 function switchDotsVisuals(newSlide) {
   sliderDots[activeIndex].classList.toggle('slider__dot_active');
   sliderDots[newSlide].classList.toggle('slider__dot_active');
-}4
+};
