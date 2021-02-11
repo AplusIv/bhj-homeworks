@@ -1,42 +1,35 @@
 'use strict';
 
-/* Добавил атрибут required в импут планировщика. Надеюсь, это не запрещено заданием */
-/*??? Всё работает, но после добавления задания, автоматически выскаквает плашка с проверкой заполнения поля (как я понимаю, потому что снова пустое поле). Не смог от этого избавиться. Это можно как-то убрать? */
-
 const taskInput = document.getElementById('task__input');
 const addButton = document.getElementById('tasks__add');
 const tasksList = document.getElementById('tasks__list');
-
-let storageTaskList;
-//console.log(storageTaskList);
+let storageTaskList = [];
 
 // Восстановление задач из стораджа после повторной загрузки страницы
 window.addEventListener('load', () => {
-  if (localStorage.getItem('TODOlist') !== null) {
-    tasksList.insertAdjacentHTML("afterbegin", localStorage.getItem('TODOlist'));
+  if (localStorage.getItem('TODOlist') !== null) {  
+    let storageArr = JSON.parse(localStorage.getItem('TODOlist'));
+    for (let item of storageArr) {
+      createTask(item);
+    }
     // Навешиваю повторно обработчики на задачи, подгруженные из стораджа
     for (let task of tasksList.children) {
       task.addEventListener('click', closeTask);
     }
-  }  
+  }
 });
 
-// elem.insertAdjacentHTML(where, html);
-
-//window.addEventListener('load', () => tasksList.outerHTML = localStorage.getItem('TODOlist'))
-
-console.log(taskInput.outerHTML);
-
+//??? Если я уберу атрибут required, то я смогу с лёгкостью добавлять пустые строки (поэтому я и написал, что не уверен, что моя проверка без required работает)
 taskInput.addEventListener('keydown', (event) => {
-  
-  if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+
+  if (event.key === 'Enter') { // if (event.code === 'Enter' || event.code === 'NumpadEnter')
     if (event.currentTarget.checkValidity()) {
-      console.log('всё ок'); // ??? Не уверен, что правильно работает. Не выводит в консоль. Работает только алерт из-за атрибута required в инпуте.
+      console.log('всё ок');
+      console.log(event.key)
       addTask();
     }
   }
 });
-
 
 addButton.addEventListener('click', () => {
   if (taskInput.checkValidity()) {
@@ -44,30 +37,39 @@ addButton.addEventListener('click', () => {
   }
 });
 
+function addTask() {
+  createTask(taskInput.value);
+  storageTaskList.push(taskInput.value);
+  localStorage.setItem('TODOlist', JSON.stringify(storageTaskList)); //Запись Storage
+  taskInput.value = '';
 
-function addTask(event) {
-  //event.preventDefault();
+  for (let task of tasksList.children) {
+    task.addEventListener('click', closeTask);
+  }
+}
+
+function closeTask(event) { 
+  let storageArr = JSON.parse(localStorage.getItem('TODOlist'));    
+  let closedTask = this.querySelector('.task__title').textContent.trim();
+  let removedIndex = storageArr.findIndex(item => item === closedTask);  
   
+  storageArr.splice(removedIndex, 1); 
+  if (storageArr.length > 0) {
+    localStorage.setItem('TODOlist', JSON.stringify(storageArr));
+  } else {
+    localStorage.removeItem('TODOlist');
+  }
+  this.remove();
+}
+
+function createTask(value) {
   let task = document.createElement('div');
   tasksList.appendChild(task);
   task.innerHTML = `    
     <div class="task__title">
-      ${taskInput.value}
+      ${value}
     </div>
     <a href="#" class="task__remove">&times;</a>
     `;
   task.classList.add('task');
-  console.log(tasksList.outerHTML);
-
-  storageTaskList = tasksList.innerHTML;
-  localStorage.setItem('TODOlist', storageTaskList); //Запись Storage
-  taskInput.value = '';
-
-  task.addEventListener('click', closeTask);
-}
-
-function closeTask() {
-  this.remove();
-  let changedStorageTaskList = localStorage.getItem('TODOlist').replace(this.outerHTML, ''); // удаляю часть из значения ключа и перезаписываю Storage
-  localStorage.setItem('TODOlist', changedStorageTaskList);
 }

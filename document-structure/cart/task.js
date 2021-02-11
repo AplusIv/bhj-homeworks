@@ -8,7 +8,7 @@ console.log(cartProducts);
 
 const cart = document.querySelector('.cart');
 
-let localCartProducts;
+let localCartProducts = [];
 
 for (let product of products) {
   product.addEventListener('click', chooseProduct);
@@ -16,20 +16,19 @@ for (let product of products) {
 
 cart.addEventListener('click', removeProduct);
 
-
 window.addEventListener('load', () => {
-  if (localStorage.getItem('localCartProductsList') === null) {
-    return;
-  }
-  if (localStorage.getItem('localCartProductsList').trim().length !== 0) {
-    cartProducts.insertAdjacentHTML('afterbegin', localStorage.getItem('localCartProductsList'));
-    for (let cartProduct of cartProducts.children) {
-      cartProduct.addEventListener('click', removeProduct);
-    }
-    cart.classList.remove('cart__hidden');
-  } else {
-    cart.classList.add('cart__hidden');
-  }
+  if (localStorage.getItem('localCartProductsList') !== null) {
+    cart.classList.remove('cart__hidden');    
+    let storageArray = JSON.parse(localStorage.getItem('localCartProductsList'));
+    for (let item of storageArray) {
+      cartProducts.insertAdjacentHTML('beforeend', `
+      <div class="cart__product" data-id=${item.id}>
+        <img class="cart__product-image" src=${item.imgSrc}>
+        <div class="cart__product-count">${item.quantity}</div>
+        <div class="cart__product-remove">X</div>
+      </div>`);
+    };
+  }  
 });
 
 
@@ -51,56 +50,27 @@ function chooseProduct(event) {
         <img class="cart__product-image" src=${this.querySelector('img').src}>
         <div class="cart__product-count">${this.querySelector('.product__quantity-value').innerText}</div>
         <div class="cart__product-remove">X</div>
-      </div>`);
+      </div>`);      
     } else {
+      // Если продукт уже был в корзине
       let cartProduct = [...cartProducts.querySelectorAll('.cart__product')].find(elem => elem.dataset.id === this.dataset.id);
       cartProduct.querySelector('.cart__product-count').innerText = Number(cartProduct.querySelector('.cart__product-count').innerText) + Number(this.querySelector('.product__quantity-value').innerText); // Привести количество продукта к числу и прибавить к количеству в корзине
-
+    
       // Анимация товаров
 
       //console.log(` cart top ${cartProduct.getBoundingClientRect().top}`);
       //console.log(`cart left ${cartProduct.getBoundingClientRect().left}`);
-
       //console.log(`this top ${this.getBoundingClientRect().top}`);
       //console.log(`this left ${this.getBoundingClientRect().left}`);
 
-      //let dx = `${cartProduct.getBoundingClientRect().left - this.getBoundingClientRect().left}px`;
       let dx = cartProduct.getBoundingClientRect().left - this.getBoundingClientRect().left;
-      console.log(`dx ${dx}`);
-
-      //let dy = `${this.getBoundingClientRect().top - cartProduct.getBoundingClientRect().top}px`; 
       let dy = this.getBoundingClientRect().top - cartProduct.getBoundingClientRect().top;
-      console.log(`dy ${dy}`);
-
-      let animationTopCoordinate = this.getBoundingClientRect().top;
-      let animationLeftCoordinate = this.getBoundingClientRect().left;
-
+      let animationTopCoordinate = this.getBoundingClientRect().top; // левая сторона продукта
+      let animationLeftCoordinate = this.getBoundingClientRect().left; // верхняя сторона продукта
 
       let animatedProductImage = this.querySelector('img').cloneNode(false);
-      animatedProductImage.classList.add('animated-product-image');
+      animatedProductImage.classList.add('animated-product-image'); // чтобы задать свойство position: absolute
       this.appendChild(animatedProductImage);
-
-
-      /* Рабочий вариант через сетИнтервал
-      let timerId = setInterval(function animateProduct() {
-        animatedProductImage.style.top = `${animationTopCoordinate - dy / 5}px`;
-        console.log(animatedProductImage.style.top);      
-
-        animationTopCoordinate = Number(animatedProductImage.style.top.replace('px', ''));
-        console.log(animationTopCoordinate);
-
-        animatedProductImage.style.left = `${animationLeftCoordinate + dx / 5}px`;
-        console.log(animatedProductImage.style.left);
-
-        animationLeftCoordinate = Number(animatedProductImage.style.left.replace('px', ''));
-        console.log(animationLeftCoordinate);
-      }, 10);
-      
-      setTimeout(() => {
-        clearInterval(timerId);
-        animatedProductImage.remove();
-      }, 50);
-      */
 
       // Вариант через рекурсивный сетТаймаут 
       let timerId = setTimeout(function animateProduct() {
@@ -125,19 +95,38 @@ function chooseProduct(event) {
       }, 50);
     }
 
-    localCartProducts = cartProducts.innerHTML;
-    //console.log(localCartProducts);
-    localStorage.setItem('localCartProductsList', localCartProducts);
+    let cartItems = [...cartProducts.children];
+    localCartProducts = [];
+    
+    cartItems.forEach((item) => {      
+      let localCartProduct = {
+        id: item.dataset.id,
+        imgSrc: item.querySelector('img').src,
+        quantity: item.querySelector('.cart__product-count').textContent,
+      }
+      
+      localCartProducts.push(localCartProduct);
+      localStorage.setItem('localCartProductsList', JSON.stringify(localCartProducts));
+    })  
   }
 }
 
 function removeProduct(event) {
   if (event.target.classList.contains('cart__product-remove')) {
+    let storageArray = JSON.parse(localStorage.getItem('localCartProductsList'));
+    // console.log(storageArray);
+    let storageIndex = storageArray.findIndex(item => item.id === event.target.parentElement.dataset.id);
+    
+    storageArray.splice(storageIndex, 1); // меняет первоначальный массив (убирает объект под найденным индексом)
+    // console.log(storageArray);
+
+    localStorage.setItem('localCartProductsList', JSON.stringify(storageArray));
+
     event.target.parentElement.remove();
-    let changedLocalCartProducts = localStorage.getItem('localCartProductsList').replace(event.target.parentElement.outerHTML, ''); // удаляю и перезаписываю Storage
-    localStorage.setItem('localCartProductsList', changedLocalCartProducts);
+
     if (cartProducts.children.length === 0) {
       this.classList.add('cart__hidden');
+      localStorage.removeItem('localCartProductsList');
     }
   }
 }

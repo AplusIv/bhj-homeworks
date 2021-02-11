@@ -1,0 +1,10 @@
+.clear__btn {
+    display: block;
+    margin-top: 5px;
+    background: red;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding:  10px;
+    text-transform: uppercase;
+  }  
