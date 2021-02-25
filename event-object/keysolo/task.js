@@ -1,11 +1,18 @@
 'use strict';
 
+// ??? Помогите разобраться с таймером. Интересное задание, хочется решить) 
+// Я добавил новый метод setTimer() и изменил немного вёрстку. 
+// Хотел сначала написать через стрелочную функцию, но у меня начались проблемы с this, переписал на функциональное выражение. 
+// Но не получается отменять таймеры (они просто начинают наслаиваться друг на друга с каждым новым словом) 
+// Как мне изменить существующий код или тут можно проще решить как-то?
+
 class Game {
   constructor(container) {
     this.container = container;
     this.wordElement = container.querySelector('.word');
     this.winsElement = container.querySelector('.status__wins');
     this.lossElement = container.querySelector('.status__loss');
+    this.timerElement = container.querySelector('.timer')// !!! Добавил таймер в изначальный класс
 
     this.reset();
 
@@ -18,87 +25,45 @@ class Game {
     this.lossElement.textContent = 0;
   }
   
-  registerEvents() {
-    // ??? Помогите, пжлст, с этим заданием. Я уже отчаился с ним разобраться. В каком направлении двигаться? Нам, честно говоря, совсем мало рассказывали про события клавиатуры.
-    // Да и в целом код здесь непростой (для меня, по крайней мере).
+  registerEvents() {   
+    //console.log(this.currentSymbol);
+    // console.log(this.wordElement.children);
+    // console.log(this.wordElement.children.length);
+    // let comparingLetter = this.currentSymbol.textContent;
+    /* let timerStart = this.wordElement.children.length;
+    let timerId = setInterval(() => {
+        let currentTime = timerStart--;
+        console.log(currentTime);
+        this.timerElement.textContent = currentTime;        
+      }, 1000);
     
-    //??? Не могу сослаться из обработчика на нужный метод. this другой. Как быть? 
+    setTimeout(() => clearInterval(timerId), timerStart * 1000 + 1000); */
     
-    console.log(this.currentSymbol);
-    const comparingLetter = this.currentSymbol.textContent;
-    //let next = this.success();
-    //this.success();
-    document.addEventListener('keyup', function(event) {
-      //console.log(this.currentSymbol);
+    document.addEventListener('keyup', event => {
+      console.log(this.currentSymbol);
+      console.log(this.wordElement.children);
+      console.log(this.wordElement.children.length);
+      /* let timerId = setInterval(() => {
+        let currentTime = timerStart--;
+        console.log(currentTime);
+        this.timerElement.textContent = currentTime;        
+      }, 1000); */
+
       //console.log(this.currentSymbol.textContent);
-      console.log(event.type);
+      // console.log(event.type);
+      let comparingLetter = this.currentSymbol.textContent;
       console.log(event.key);
-      console.log(event.code);
       
-      
-      /* if (event.code === a) {
+      if (event.key.toLowerCase() === comparingLetter.toLowerCase()) {
         console.log('верно');
-      } else {
-        console.log('неверно');
-      }
-      */
-   
-      if (event.key === comparingLetter) {
-        console.log('верно');
-        let a = this.success.bind(this);
-        a();
-      } else {
+        this.success();
+      } else {        
         console.log('неверно');
         this.fail();
-      }
-      
+      } 
+
     })
    
-
-
-
-
-
-    
-    /*
-    let arr = []; 
-    console.log(this.currentSymbol.textContent);
-    // document.querySelector('.text_field').addEventListener('keyup', handler);
-    document.addEventListener('keyup', handler);
-    // this.currentSymbol.textContent;
-
-    if (arr[0] === this.currentSymbol.textContent) {
-      this.success;
-    } else {
-      this.fail();
-    }
-    
-    console.log(arr);
-    */
-    /*
-    function handler(event) {
-      console.log(event.key);
-      console.log(typeof event.key);
-      console.log(event.key.toLowerCase());
-      // let a = event.key.toLowerCase();
-      // return a;
-      arr.push(event.key.toLowerCase());
-      console.log(arr);
-      */
-      /* if (event.key.toLowerCase() === this.currentSymbol.textContent) {
-        console.log("верный символ");        
-      } else {
-        console.log("не то");
-      }
-      */
-      // console.log(event);
-      // console.log(event.code);
-      // return event.key, event, event.code;
-    /*} */
-    
-    
-
-
     /*
       TODO:
       Написать обработчик события, который откликается
@@ -108,17 +73,55 @@ class Game {
      */
   }
 
+  setTimer() { //???!!! Проблемы с областью видимости, когда делаю таймер. Через стрелку рекурсивный таймаут не написать, с функциональным выражением this связан.
+    let timerStart = this.wordElement.children.length;
+    /* let timerId = setInterval(() => {
+        let currentTime = timerStart--;
+        console.log(currentTime);
+        this.timerElement.textContent = currentTime;        
+      }, 1000);
+    
+    setTimeout(() => clearInterval(timerId), timerStart * 1000 + 1000);
+    
+    if (this.currentSymbol === null) {
+      setTimeout(() => clearInterval(timerId), 0);
+    }  */
+    let timer = document.querySelector('.timer');
+    let timerId = setTimeout(function tick() {
+      let currentTime = timerStart--;      
+      timer.textContent = currentTime;
+      let word = document.querySelector('.word');
+      let rightLetters = word.querySelectorAll('.symbol_correct');
+      // console.log(document.querySelector('.word'));
+      console.log(word.children.length);
+      console.log(rightLetters.length);
+      if (word.children.length === rightLetters.length) {
+        console.log('Супер!');
+        setTimeout(() => clearInterval(timerId), 0);       
+      } else {
+        timerId = setTimeout(tick, 1000);
+        console.log('ещё секундочку!');
+      } // ??? Пытаюсь отменить вызов таймаута, не идёт... И идеи кончились.      
+      
+    }, 1000)
+
+    setTimeout(() => clearTimeout(timerId), timerStart * 1000 + 1500);    
+  }
+
   success() {
     this.currentSymbol.classList.add('symbol_correct');
     this.currentSymbol = this.currentSymbol.nextElementSibling;
+    // this.currentSymbol.classList.add('symbol_current'); //
+    // this.currentSymbol.previousElementSibling.classList.remove('symbol_current'); //
     if (this.currentSymbol !== null) {
+      // setTimeout(() => clearInterval(timerId), 0);//
       return;
     }
 
     if (++this.winsElement.textContent === 10) {
       alert('Победа!');
-      this.reset();
-    }
+      this.reset();      
+    }    
     this.setNewWord();
   }
 
@@ -127,6 +130,7 @@ class Game {
       alert('Вы проиграли!');
       this.reset();
     }
+    // setTimeout(() => clearInterval(timerId), 0)//
     this.setNewWord();
   }
 
@@ -134,6 +138,11 @@ class Game {
     const word = this.getWord();
 
     this.renderWord(word);
+
+    // this.setTimer(); // !!!
+    // let timerStart = this.wordElement.children.length;
+    // this.timerStart;
+    this.setTimer();// !!!
   }
 
   getWord() {
@@ -169,22 +178,3 @@ class Game {
 }
 
 new Game(document.getElementById('game'));
-
-let game1 = new Game(document.getElementById('game'));
-
-/*
-let game1 = new Game(document.getElementById('game'));
-
-
-console.log(game1);
-console.log(game1.currentSymbol);
-*/
-/*
-function handler(event) {
-  console.log(event.key);
-  console.log(event);
-  console.log(event.code);
-  return event.key;
-}
-document.addEventListener('keydown', handler)
-*/
